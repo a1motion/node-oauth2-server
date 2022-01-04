@@ -1,203 +1,244 @@
-'use strict';
+/* eslint-disable no-empty-function */
+/* eslint-disable no-new */
+"use strict";
 
 /**
  * Module dependencies.
  */
 
-var AuthorizationCodeGrantType = require('../../../lib/grant-types/authorization-code-grant-type');
-var InvalidArgumentError = require('../../../lib/errors/invalid-argument-error');
-var InvalidGrantError = require('../../../lib/errors/invalid-grant-error');
-var InvalidRequestError = require('../../../lib/errors/invalid-request-error');
-var Promise = require('bluebird');
-var Request = require('../../../lib/request');
-var ServerError = require('../../../lib/errors/server-error');
-var should = require('should');
+const AuthorizationCodeGrantType = require("../../../lib/grant-types/authorization-code-grant-type");
+const InvalidArgumentError = require("../../../lib/errors/invalid-argument-error");
+const InvalidGrantError = require("../../../lib/errors/invalid-grant-error");
+const InvalidRequestError = require("../../../lib/errors/invalid-request-error");
+const Request = require("../../../lib/request");
+const ServerError = require("../../../lib/errors/server-error");
+const should = require("should");
 
 /**
  * Test `AuthorizationCodeGrantType` integration.
  */
 
-describe('AuthorizationCodeGrantType integration', function() {
-  describe('constructor()', function() {
-    it('should throw an error if `model` is missing', function() {
+describe("AuthorizationCodeGrantType integration", () => {
+  describe("constructor()", () => {
+    it("should throw an error if `model` is missing", () => {
       try {
         new AuthorizationCodeGrantType();
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `model`');
+        e.message.should.equal("Missing parameter: `model`");
       }
     });
 
-    it('should throw an error if the model does not implement `getAuthorizationCode()`', function() {
+    it("should throw an error if the model does not implement `getAuthorizationCode()`", () => {
       try {
         new AuthorizationCodeGrantType({ model: {} });
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Invalid argument: model does not implement `getAuthorizationCode()`');
+        e.message.should.equal("Invalid argument: model does not implement `getAuthorizationCode()`");
       }
     });
 
-    it('should throw an error if the model does not implement `revokeAuthorizationCode()`', function() {
+    it("should throw an error if the model does not implement `revokeAuthorizationCode()`", () => {
       try {
-        var model = {
-          getAuthorizationCode: function() {}
+        const model = {
+          getAuthorizationCode() {},
         };
 
-        new AuthorizationCodeGrantType({ model: model });
+        new AuthorizationCodeGrantType({ model });
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Invalid argument: model does not implement `revokeAuthorizationCode()`');
+        e.message.should.equal("Invalid argument: model does not implement `revokeAuthorizationCode()`");
       }
     });
 
-    it('should throw an error if the model does not implement `saveToken()`', function() {
+    it("should throw an error if the model does not implement `saveToken()`", () => {
       try {
-        var model = {
-          getAuthorizationCode: function() {},
-          revokeAuthorizationCode: function() {}
+        const model = {
+          getAuthorizationCode() {},
+          revokeAuthorizationCode() {},
         };
 
-        new AuthorizationCodeGrantType({ model: model });
+        new AuthorizationCodeGrantType({ model });
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Invalid argument: model does not implement `saveToken()`');
+        e.message.should.equal("Invalid argument: model does not implement `saveToken()`");
       }
     });
   });
 
-  describe('handle()', function() {
-    it('should throw an error if `request` is missing', function() {
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+  describe("handle()", () => {
+    it("should throw an error if `request` is missing", () => {
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
-      try {
-        grantType.handle();
-
-        should.fail();
-      } catch (e) {
-        e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `request`');
-      }
-    });
-    
-    it('should throw an error if `client` is invalid', function() {
-      var client = {};
-      var model = {
-        getAuthorizationCode: function() { return { authorizationCode: 12345, expiresAt: new Date(new Date() * 2), user: {} }; },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
-      };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
-
-      return grantType.handle(request, client)
+      return grantType
+        .handle()
         .then(should.fail)
-        .catch(function(e) {
-          e.should.be.an.instanceOf(ServerError);
-          e.message.should.equal('Server error: `getAuthorizationCode()` did not return a `client` object');
+        .catch((e) => {
+          e.should.be.an.instanceOf(InvalidArgumentError);
+          e.message.should.equal("Missing parameter: `request`");
         });
     });
 
-    it('should throw an error if `client` is missing', function() {
-      
-      var model = {
-        getAuthorizationCode: function() { return { authorizationCode: 12345, expiresAt: new Date(new Date() * 2), user: {} }; },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should throw an error if `client` is invalid", () => {
+      const client = {};
+      const model = {
+        getAuthorizationCode() {
+          return { authorizationCode: 12345, expiresAt: new Date(new Date() * 2), user: {} };
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+
+      return grantType
+        .handle(request, client)
+        .then(should.fail)
+        .catch((e) => {
+          e.should.be.an.instanceOf(ServerError);
+          e.message.should.equal("Server error: `getAuthorizationCode()` did not return a `client` object");
+        });
+    });
+
+    it("should throw an error if `client` is missing", () => {
+      const model = {
+        getAuthorizationCode() {
+          return { authorizationCode: 12345, expiresAt: new Date(new Date() * 2), user: {} };
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
+      };
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
       try {
         grantType.handle(request, null);
-      }
-      catch (e) {
+      } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `client`');
+        e.message.should.equal("Missing parameter: `client`");
       }
     });
 
-    it('should return a token', function() {
-      var client = { id: 'foobar' };
-      var token = {};
-      var model = {
-        getAuthorizationCode: function() { return { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), user: {} }; },
-        revokeAuthorizationCode: function() { return true; },
-        saveToken: function() { return token; },
-        validateScope: function() { return 'foo'; }
+    it("should return a token", () => {
+      const client = { id: "foobar" };
+      const token = {};
+      const model = {
+        getAuthorizationCode() {
+          return { authorizationCode: 12345, client: { id: "foobar" }, expiresAt: new Date(new Date() * 2), user: {} };
+        },
+        revokeAuthorizationCode() {
+          return true;
+        },
+        saveToken() {
+          return token;
+        },
+        validateScope() {
+          return "foo";
+        },
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.handle(request, client)
-        .then(function(data) {
+      return grantType
+        .handle(request, client)
+        .then((data) => {
           data.should.equal(token);
         })
         .catch(should.fail);
     });
 
-    it('should support promises', function() {
-      var client = { id: 'foobar' };
-      var model = {
-        getAuthorizationCode: function() { return Promise.resolve({ authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), user: {} }); },
-        revokeAuthorizationCode: function() { return true; },
-        saveToken: function() {}
+    it("should support promises", () => {
+      const client = { id: "foobar" };
+      const model = {
+        getAuthorizationCode() {
+          return Promise.resolve({
+            authorizationCode: 12345,
+            client: { id: "foobar" },
+            expiresAt: new Date(new Date() * 2),
+            user: {},
+          });
+        },
+        revokeAuthorizationCode() {
+          return true;
+        },
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
       grantType.handle(request, client).should.be.an.instanceOf(Promise);
     });
 
-    it('should support non-promises', function() {
-      var client = { id: 'foobar' };
-      var model = {
-        getAuthorizationCode: function() { return { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), user: {} }; },
-        revokeAuthorizationCode: function() { return true; },
-        saveToken: function() {}
+    it("should support non-promises", () => {
+      const client = { id: "foobar" };
+      const model = {
+        getAuthorizationCode() {
+          return { authorizationCode: 12345, client: { id: "foobar" }, expiresAt: new Date(new Date() * 2), user: {} };
+        },
+        revokeAuthorizationCode() {
+          return true;
+        },
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
       grantType.handle(request, client).should.be.an.instanceOf(Promise);
     });
 
-    it('should support callbacks', function() {
-      var client = { id: 'foobar' };
-      var model = {
-        getAuthorizationCode: function(code, callback) { callback(null, { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), user: {} }); },
-        revokeAuthorizationCode: function(code, callback) { callback(null, { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() / 2), user: {} }); },
-        saveToken: function(tokenToSave, client, user, callback) { callback(null, tokenToSave); }
+    it("should support callbacks", () => {
+      const client = { id: "foobar" };
+      const model = {
+        getAuthorizationCode(code, callback) {
+          callback(null, {
+            authorizationCode: 12345,
+            client: { id: "foobar" },
+            expiresAt: new Date(new Date() * 2),
+            user: {},
+          });
+        },
+        revokeAuthorizationCode(code, callback) {
+          callback(null, {
+            authorizationCode: 12345,
+            client: { id: "foobar" },
+            expiresAt: new Date(new Date() / 2),
+            user: {},
+          });
+        },
+        saveToken(tokenToSave, client, user, callback) {
+          callback(null, tokenToSave);
+        },
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
       grantType.handle(request, client).should.be.an.instanceOf(Promise);
     });
   });
 
-  describe('getAuthorizationCode()', function() {
-    it('should throw an error if the request body does not contain `code`', function() {
-      var client = {};
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+  describe("getAuthorizationCode()", () => {
+    it("should throw an error if the request body does not contain `code`", () => {
+      const client = {};
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
       try {
         grantType.getAuthorizationCode(request, client);
@@ -205,19 +246,19 @@ describe('AuthorizationCodeGrantType integration', function() {
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidRequestError);
-        e.message.should.equal('Missing parameter: `code`');
+        e.message.should.equal("Missing parameter: `code`");
       }
     });
 
-    it('should throw an error if `code` is invalid', function() {
-      var client = {};
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should throw an error if `code` is invalid", () => {
+      const client = {};
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 'øå€£‰' }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: "øå€£‰" }, headers: {}, method: {}, query: {} });
 
       try {
         grantType.getAuthorizationCode(request, client);
@@ -225,213 +266,271 @@ describe('AuthorizationCodeGrantType integration', function() {
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidRequestError);
-        e.message.should.equal('Invalid parameter: `code`');
+        e.message.should.equal("Invalid parameter: `code`");
       }
     });
 
-    it('should throw an error if `authorizationCode` is missing', function() {
-      var client = {};
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should throw an error if `authorizationCode` is missing", () => {
+      const client = {};
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.getAuthorizationCode(request, client)
+      return grantType
+        .getAuthorizationCode(request, client)
         .then(should.fail)
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(InvalidGrantError);
-          e.message.should.equal('Invalid grant: authorization code is invalid');
+          e.message.should.equal("Invalid grant: authorization code is invalid");
         });
     });
 
-    it('should throw an error if `authorizationCode.client` is missing', function() {
-      var client = {};
-      var model = {
-        getAuthorizationCode: function() { return { authorizationCode: 12345 }; },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should throw an error if `authorizationCode.client` is missing", () => {
+      const client = {};
+      const model = {
+        getAuthorizationCode() {
+          return { authorizationCode: 12345 };
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.getAuthorizationCode(request, client)
+      return grantType
+        .getAuthorizationCode(request, client)
         .then(should.fail)
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(ServerError);
-          e.message.should.equal('Server error: `getAuthorizationCode()` did not return a `client` object');
+          e.message.should.equal("Server error: `getAuthorizationCode()` did not return a `client` object");
         });
     });
 
-    it('should throw an error if `authorizationCode.expiresAt` is missing', function() {
-      var client = {};
-      var model = {
-        getAuthorizationCode: function() { return { authorizationCode: 12345, client: {}, user: {} }; },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should throw an error if `authorizationCode.expiresAt` is missing", () => {
+      const client = {};
+      const model = {
+        getAuthorizationCode() {
+          return { authorizationCode: 12345, client: {}, user: {} };
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.getAuthorizationCode(request, client)
+      return grantType
+        .getAuthorizationCode(request, client)
         .then(should.fail)
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(ServerError);
-          e.message.should.equal('Server error: `expiresAt` must be a Date instance');
+          e.message.should.equal("Server error: `expiresAt` must be a Date instance");
         });
     });
 
-    it('should throw an error if `authorizationCode.user` is missing', function() {
-      var client = {};
-      var model = {
-        getAuthorizationCode: function() { return { authorizationCode: 12345, client: {}, expiresAt: new Date() }; },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should throw an error if `authorizationCode.user` is missing", () => {
+      const client = {};
+      const model = {
+        getAuthorizationCode() {
+          return { authorizationCode: 12345, client: {}, expiresAt: new Date() };
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.getAuthorizationCode(request, client)
+      return grantType
+        .getAuthorizationCode(request, client)
         .then(should.fail)
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(ServerError);
-          e.message.should.equal('Server error: `getAuthorizationCode()` did not return a `user` object');
+          e.message.should.equal("Server error: `getAuthorizationCode()` did not return a `user` object");
         });
     });
 
-    it('should throw an error if the client id does not match', function() {
-      var client = { id: 123 };
-      var model = {
-        getAuthorizationCode: function() {
+    it("should throw an error if the client id does not match", () => {
+      const client = { id: 123 };
+      const model = {
+        getAuthorizationCode() {
           return { authorizationCode: 12345, expiresAt: new Date(), client: { id: 456 }, user: {} };
         },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.getAuthorizationCode(request, client)
+      return grantType
+        .getAuthorizationCode(request, client)
         .then(should.fail)
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(InvalidGrantError);
-          e.message.should.equal('Invalid grant: authorization code is invalid');
+          e.message.should.equal("Invalid grant: authorization code is invalid");
         });
     });
 
-    it('should throw an error if the auth code is expired', function() {
-      var client = { id: 123 };
-      var date = new Date(new Date() / 2);
-      var model = {
-        getAuthorizationCode: function() {
+    it("should throw an error if the auth code is expired", () => {
+      const client = { id: 123 };
+      const date = new Date(new Date() / 2);
+      const model = {
+        getAuthorizationCode() {
           return { authorizationCode: 12345, client: { id: 123 }, expiresAt: date, user: {} };
         },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+        revokeAuthorizationCode() {},
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.getAuthorizationCode(request, client)
+      return grantType
+        .getAuthorizationCode(request, client)
         .then(should.fail)
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(InvalidGrantError);
-          e.message.should.equal('Invalid grant: authorization code has expired');
+          e.message.should.equal("Invalid grant: authorization code has expired");
         });
     });
 
-    it('should throw an error if the `redirectUri` is invalid', function() {
-      var authorizationCode = { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), redirectUri: 'foobar', user: {} };
-      var client = { id: 'foobar' };
-      var model = {
-        getAuthorizationCode: function() { return authorizationCode; },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should throw an error if the `redirectUri` is invalid", () => {
+      const authorizationCode = {
+        authorizationCode: 12345,
+        client: { id: "foobar" },
+        expiresAt: new Date(new Date() * 2),
+        redirectUri: "foobar",
+        user: {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const client = { id: "foobar" };
+      const model = {
+        getAuthorizationCode() {
+          return authorizationCode;
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
+      };
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.getAuthorizationCode(request, client)
+      return grantType
+        .getAuthorizationCode(request, client)
         .then(should.fail)
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(InvalidGrantError);
-          e.message.should.equal('Invalid grant: `redirect_uri` is not a valid URI');
+          e.message.should.equal("Invalid grant: `redirect_uri` is not a valid URI");
         });
     });
 
-    it('should return an auth code', function() {
-      var authorizationCode = { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), user: {} };
-      var client = { id: 'foobar' };
-      var model = {
-        getAuthorizationCode: function() { return authorizationCode; },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should return an auth code", () => {
+      const authorizationCode = {
+        authorizationCode: 12345,
+        client: { id: "foobar" },
+        expiresAt: new Date(new Date() * 2),
+        user: {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const client = { id: "foobar" };
+      const model = {
+        getAuthorizationCode() {
+          return authorizationCode;
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
+      };
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
-      return grantType.getAuthorizationCode(request, client)
-        .then(function(data) {
+      return grantType
+        .getAuthorizationCode(request, client)
+        .then((data) => {
           data.should.equal(authorizationCode);
         })
         .catch(should.fail);
     });
 
-    it('should support promises', function() {
-      var authorizationCode = { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), user: {} };
-      var client = { id: 'foobar' };
-      var model = {
-        getAuthorizationCode: function() { return Promise.resolve(authorizationCode); },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should support promises", () => {
+      const authorizationCode = {
+        authorizationCode: 12345,
+        client: { id: "foobar" },
+        expiresAt: new Date(new Date() * 2),
+        user: {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const client = { id: "foobar" };
+      const model = {
+        getAuthorizationCode() {
+          return Promise.resolve(authorizationCode);
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
+      };
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
       grantType.getAuthorizationCode(request, client).should.be.an.instanceOf(Promise);
     });
 
-    it('should support non-promises', function() {
-      var authorizationCode = { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), user: {} };
-      var client = { id: 'foobar' };
-      var model = {
-        getAuthorizationCode: function() { return authorizationCode; },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should support non-promises", () => {
+      const authorizationCode = {
+        authorizationCode: 12345,
+        client: { id: "foobar" },
+        expiresAt: new Date(new Date() * 2),
+        user: {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const client = { id: "foobar" };
+      const model = {
+        getAuthorizationCode() {
+          return authorizationCode;
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
+      };
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
       grantType.getAuthorizationCode(request, client).should.be.an.instanceOf(Promise);
     });
 
-    it('should support callbacks', function() {
-      var authorizationCode = { authorizationCode: 12345, client: { id: 'foobar' }, expiresAt: new Date(new Date() * 2), user: {} };
-      var client = { id: 'foobar' };
-      var model = {
-        getAuthorizationCode: function(code, callback) { callback(null, authorizationCode); },
-        revokeAuthorizationCode: function() {},
-        saveToken: function() {}
+    it("should support callbacks", () => {
+      const authorizationCode = {
+        authorizationCode: 12345,
+        client: { id: "foobar" },
+        expiresAt: new Date(new Date() * 2),
+        user: {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const client = { id: "foobar" };
+      const model = {
+        getAuthorizationCode(code, callback) {
+          callback(null, authorizationCode);
+        },
+        revokeAuthorizationCode() {},
+        saveToken() {},
+      };
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
       grantType.getAuthorizationCode(request, client).should.be.an.instanceOf(Promise);
     });
   });
 
-  describe('validateRedirectUri()', function() {
-    it('should throw an error if `redirectUri` is missing', function() {
-      var authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), redirectUri: 'http://foo.bar', user: {} };
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() { return authorizationCode; },
-        saveToken: function() {}
+  describe("validateRedirectUri()", () => {
+    it("should throw an error if `redirectUri` is missing", () => {
+      const authorizationCode = {
+        authorizationCode: 12345,
+        client: {},
+        expiresAt: new Date(new Date() / 2),
+        redirectUri: "http://foo.bar",
+        user: {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {
+          return authorizationCode;
+        },
+        saveToken() {},
+      };
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({ body: { code: 12345 }, headers: {}, method: {}, query: {} });
 
       try {
         grantType.validateRedirectUri(request, authorizationCode);
@@ -439,19 +538,32 @@ describe('AuthorizationCodeGrantType integration', function() {
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidRequestError);
-        e.message.should.equal('Invalid request: `redirect_uri` is not a valid URI');
+        e.message.should.equal("Invalid request: `redirect_uri` is not a valid URI");
       }
     });
 
-    it('should throw an error if `redirectUri` is invalid', function() {
-      var authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), redirectUri: 'http://foo.bar', user: {} };
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() { return true; },
-        saveToken: function() {}
+    it("should throw an error if `redirectUri` is invalid", () => {
+      const authorizationCode = {
+        authorizationCode: 12345,
+        client: {},
+        expiresAt: new Date(new Date() / 2),
+        redirectUri: "http://foo.bar",
+        user: {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
-      var request = new Request({ body: { code: 12345, redirect_uri: 'http://bar.foo' }, headers: {}, method: {}, query: {} });
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {
+          return true;
+        },
+        saveToken() {},
+      };
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
+      const request = new Request({
+        body: { code: 12345, redirect_uri: "http://bar.foo" },
+        headers: {},
+        method: {},
+        query: {},
+      });
 
       try {
         grantType.validateRedirectUri(request, authorizationCode);
@@ -459,134 +571,157 @@ describe('AuthorizationCodeGrantType integration', function() {
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidRequestError);
-        e.message.should.equal('Invalid request: `redirect_uri` is invalid');
+        e.message.should.equal("Invalid request: `redirect_uri` is invalid");
       }
     });
   });
 
-  describe('revokeAuthorizationCode()', function() {
-    it('should revoke the auth code', function() {
-      var authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() { return true; },
-        saveToken: function() {}
+  describe("revokeAuthorizationCode()", () => {
+    it("should revoke the auth code", () => {
+      const authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {
+          return true;
+        },
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
-      return grantType.revokeAuthorizationCode(authorizationCode)
-        .then(function(data) {
+      return grantType
+        .revokeAuthorizationCode(authorizationCode)
+        .then((data) => {
           data.should.equal(authorizationCode);
         })
         .catch(should.fail);
     });
 
-    it('should throw an error when the auth code is invalid', function() {
-      var authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() { return false; },
-        saveToken: function() {}
+    it("should throw an error when the auth code is invalid", () => {
+      const authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {
+          return false;
+        },
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
-      return grantType.revokeAuthorizationCode(authorizationCode)
-        .then(function(data) {
+      return grantType
+        .revokeAuthorizationCode(authorizationCode)
+        .then((data) => {
           data.should.equal(authorizationCode);
         })
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(InvalidGrantError);
-          e.message.should.equal('Invalid grant: authorization code is invalid');
+          e.message.should.equal("Invalid grant: authorization code is invalid");
         });
     });
 
-    it('should support promises', function() {
-      var authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() { return Promise.resolve(true); },
-        saveToken: function() {}
+    it("should support promises", () => {
+      const authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {
+          return Promise.resolve(true);
+        },
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
       grantType.revokeAuthorizationCode(authorizationCode).should.be.an.instanceOf(Promise);
     });
 
-    it('should support non-promises', function() {
-      var authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() { return authorizationCode; },
-        saveToken: function() {}
+    it("should support non-promises", () => {
+      const authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {
+          return authorizationCode;
+        },
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
       grantType.revokeAuthorizationCode(authorizationCode).should.be.an.instanceOf(Promise);
     });
 
-    it('should support callbacks', function() {
-      var authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function(code, callback) { callback(null, authorizationCode); },
-        saveToken: function() {}
+    it("should support callbacks", () => {
+      const authorizationCode = { authorizationCode: 12345, client: {}, expiresAt: new Date(new Date() / 2), user: {} };
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode(code, callback) {
+          callback(null, authorizationCode);
+        },
+        saveToken() {},
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
       grantType.revokeAuthorizationCode(authorizationCode).should.be.an.instanceOf(Promise);
     });
   });
 
-  describe('saveToken()', function() {
-    it('should save the token', function() {
-      var token = {};
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() {},
-        saveToken: function() { return token; },
-        validateScope: function() { return 'foo'; }
+  describe("saveToken()", () => {
+    it("should save the token", () => {
+      const token = {};
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {},
+        saveToken() {
+          return token;
+        },
+        validateScope() {
+          return "foo";
+        },
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
-      return grantType.saveToken(token)
-        .then(function(data) {
+      return grantType
+        .saveToken(token)
+        .then((data) => {
           data.should.equal(token);
         })
         .catch(should.fail);
     });
 
-    it('should support promises', function() {
-      var token = {};
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() {},
-        saveToken: function() { return Promise.resolve(token); }
+    it("should support promises", () => {
+      const token = {};
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {},
+        saveToken() {
+          return Promise.resolve(token);
+        },
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
       grantType.saveToken(token).should.be.an.instanceOf(Promise);
     });
 
-    it('should support non-promises', function() {
-      var token = {};
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() {},
-        saveToken: function() { return token; }
+    it("should support non-promises", () => {
+      const token = {};
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {},
+        saveToken() {
+          return token;
+        },
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
       grantType.saveToken(token).should.be.an.instanceOf(Promise);
     });
 
-    it('should support callbacks', function() {
-      var token = {};
-      var model = {
-        getAuthorizationCode: function() {},
-        revokeAuthorizationCode: function() {},
-        saveToken: function(tokenToSave, client, user, callback) { callback(null, token); }
+    it("should support callbacks", () => {
+      const token = {};
+      const model = {
+        getAuthorizationCode() {},
+        revokeAuthorizationCode() {},
+        saveToken(tokenToSave, client, user, callback) {
+          callback(null, token);
+        },
       };
-      var grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new AuthorizationCodeGrantType({ accessTokenLifetime: 123, model });
 
       grantType.saveToken(token).should.be.an.instanceOf(Promise);
     });

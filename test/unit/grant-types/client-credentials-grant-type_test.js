@@ -1,29 +1,31 @@
-'use strict';
+/* eslint-disable no-empty-function */
+"use strict";
 
 /**
  * Module dependencies.
  */
 
-var ClientCredentialsGrantType = require('../../../lib/grant-types/client-credentials-grant-type');
-var sinon = require('sinon');
-var should = require('should');
+const ClientCredentialsGrantType = require("../../../lib/grant-types/client-credentials-grant-type");
+const sinon = require("sinon");
+const should = require("should");
 
 /**
  * Test `ClientCredentialsGrantType`.
  */
 
-describe('ClientCredentialsGrantType', function() {
-  describe('getUserFromClient()', function() {
-    it('should call `model.getUserFromClient()`', function() {
-      var model = {
+describe("ClientCredentialsGrantType", () => {
+  describe("getUserFromClient()", () => {
+    it("should call `model.getUserFromClient()`", () => {
+      const model = {
         getUserFromClient: sinon.stub().returns(true),
-        saveToken: function() {}
+        saveToken() {},
       };
-      var handler = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var client = {};
+      const handler = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const client = {};
 
-      return handler.getUserFromClient(client)
-        .then(function() {
+      return handler
+        .getUserFromClient(client)
+        .then(() => {
           model.getUserFromClient.callCount.should.equal(1);
           model.getUserFromClient.firstCall.args.should.have.length(1);
           model.getUserFromClient.firstCall.args[0].should.equal(client);
@@ -33,25 +35,30 @@ describe('ClientCredentialsGrantType', function() {
     });
   });
 
-  describe('saveToken()', function() {
-    it('should call `model.saveToken()`', function() {
-      var client = {};
-      var user = {};
-      var model = {
-        getUserFromClient: function() {},
-        saveToken: sinon.stub().returns(true)
+  describe("saveToken()", () => {
+    it("should call `model.saveToken()`", () => {
+      const client = {};
+      const user = {};
+      const model = {
+        getUserFromClient() {},
+        saveToken: sinon.stub().returns(true),
       };
-      var handler = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
+      const handler = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
 
-      sinon.stub(handler, 'validateScope').returns('foobar');
-      sinon.stub(handler, 'generateAccessToken').returns('foo');
-      sinon.stub(handler, 'getAccessTokenExpiresAt').returns('biz');
+      sinon.stub(handler, "validateScope").returns("foobar");
+      sinon.stub(handler, "generateAccessToken").returns("foo");
+      sinon.stub(handler, "getAccessTokenExpiresAt").returns("biz");
 
-      return handler.saveToken(user, client, 'foobar')
-        .then(function() {
+      return handler
+        .saveToken(user, client, "foobar")
+        .then(() => {
           model.saveToken.callCount.should.equal(1);
           model.saveToken.firstCall.args.should.have.length(3);
-          model.saveToken.firstCall.args[0].should.eql({ accessToken: 'foo', accessTokenExpiresAt: 'biz', scope: 'foobar' });
+          model.saveToken.firstCall.args[0].should.eql({
+            accessToken: "foo",
+            accessTokenExpiresAt: "biz",
+            scope: "foobar",
+          });
           model.saveToken.firstCall.args[1].should.equal(client);
           model.saveToken.firstCall.args[2].should.equal(user);
           model.saveToken.firstCall.thisValue.should.equal(model);

@@ -1,89 +1,89 @@
-'use strict';
+/* eslint-disable no-empty-function */
+"use strict";
 
 /**
  * Module dependencies.
  */
 
-var AuthenticateHandler = require('../../lib/handlers/authenticate-handler');
-var AuthorizeHandler = require('../../lib/handlers/authorize-handler');
-var Promise = require('bluebird');
-var Server = require('../../lib/server');
-var TokenHandler = require('../../lib/handlers/token-handler');
-var sinon = require('sinon');
+const AuthenticateHandler = require("../../lib/handlers/authenticate-handler");
+const AuthorizeHandler = require("../../lib/handlers/authorize-handler");
+const Server = require("../../lib/server");
+const TokenHandler = require("../../lib/handlers/token-handler");
+const sinon = require("sinon");
 
 /**
  * Test `Server`.
  */
 
-describe('Server', function() {
-  describe('authenticate()', function() {
-    it('should call `handle`', function() {
-      var model = {
-        getAccessToken: function() {}
+describe("Server", () => {
+  describe("authenticate()", () => {
+    it("should call `handle`", () => {
+      const model = {
+        getAccessToken() {},
       };
-      var server = new Server({ model: model });
+      const server = new Server({ model });
 
-      sinon.stub(AuthenticateHandler.prototype, 'handle').returns(Promise.resolve());
+      sinon.stub(AuthenticateHandler.prototype, "handle").returns(Promise.resolve());
 
-      server.authenticate('foo');
+      server.authenticate("foo");
 
       AuthenticateHandler.prototype.handle.callCount.should.equal(1);
-      AuthenticateHandler.prototype.handle.firstCall.args[0].should.equal('foo');
+      AuthenticateHandler.prototype.handle.firstCall.args[0].should.equal("foo");
       AuthenticateHandler.prototype.handle.restore();
     });
 
-    it('should map string passed as `options` to `options.scope`', function() {
-      var model = {
-        getAccessToken: function() {},
-        verifyScope: function() {}
+    it("should map string passed as `options` to `options.scope`", () => {
+      const model = {
+        getAccessToken() {},
+        verifyScope() {},
       };
-      var server = new Server({ model: model });
+      const server = new Server({ model });
 
-      sinon.stub(AuthenticateHandler.prototype, 'handle').returns(Promise.resolve());
+      sinon.stub(AuthenticateHandler.prototype, "handle").returns(Promise.resolve());
 
-      server.authenticate('foo', 'bar', 'test');
+      server.authenticate("foo", "bar", "test");
 
       AuthenticateHandler.prototype.handle.callCount.should.equal(1);
-      AuthenticateHandler.prototype.handle.firstCall.args[0].should.equal('foo');
-      AuthenticateHandler.prototype.handle.firstCall.args[1].should.equal('bar');
-      AuthenticateHandler.prototype.handle.firstCall.thisValue.should.have.property('scope', 'test');
+      AuthenticateHandler.prototype.handle.firstCall.args[0].should.equal("foo");
+      AuthenticateHandler.prototype.handle.firstCall.args[1].should.equal("bar");
+      AuthenticateHandler.prototype.handle.firstCall.thisValue.should.have.property("scope", "test");
       AuthenticateHandler.prototype.handle.restore();
     });
   });
 
-  describe('authorize()', function() {
-    it('should call `handle`', function() {
-      var model = {
-        getAccessToken: function() {},
-        getClient: function() {},
-        saveAuthorizationCode: function() {}
+  describe("authorize()", () => {
+    it("should call `handle`", () => {
+      const model = {
+        getAccessToken() {},
+        getClient() {},
+        saveAuthorizationCode() {},
       };
-      var server = new Server({ model: model });
+      const server = new Server({ model });
 
-      sinon.stub(AuthorizeHandler.prototype, 'handle').returns(Promise.resolve());
+      sinon.stub(AuthorizeHandler.prototype, "handle").returns(Promise.resolve());
 
-      server.authorize('foo', 'bar');
+      server.authorize("foo", "bar");
 
       AuthorizeHandler.prototype.handle.callCount.should.equal(1);
-      AuthorizeHandler.prototype.handle.firstCall.args[0].should.equal('foo');
+      AuthorizeHandler.prototype.handle.firstCall.args[0].should.equal("foo");
       AuthorizeHandler.prototype.handle.restore();
     });
   });
 
-  describe('token()', function() {
-    it('should call `handle`', function() {
-      var model = {
-        getClient: function() {},
-        saveToken: function() {}
+  describe("token()", () => {
+    it("should call `handle`", () => {
+      const model = {
+        getClient() {},
+        saveToken() {},
       };
-      var server = new Server({ model: model });
+      const server = new Server({ model });
 
-      sinon.stub(TokenHandler.prototype, 'handle').returns(Promise.resolve());
+      sinon.stub(TokenHandler.prototype, "handle").returns(Promise.resolve());
 
-      server.token('foo', 'bar');
+      server.token("foo", "bar");
 
       TokenHandler.prototype.handle.callCount.should.equal(1);
-      TokenHandler.prototype.handle.firstCall.args[0].should.equal('foo');
+      TokenHandler.prototype.handle.firstCall.args[0].should.equal("foo");
       TokenHandler.prototype.handle.restore();
     });
   });

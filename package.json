@@ -37,15 +37,21 @@
   "main": "index.js",
   "dependencies": {
     "basic-auth": "2.0.1",
-    "bluebird": "3.7.2",
     "lodash": "4.17.21",
-    "promisify-any": "2.0.1",
     "statuses": "1.5.0",
     "type-is": "1.6.18"
   },
   "devDependencies": {
+    "@babel/core": "^7.16.7",
+    "@babel/eslint-parser": "^7.16.5",
+    "eslint": "^8.6.0",
+    "eslint-config-a1motion": "^3.5.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-formatter-pretty": "^4.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "jshint": "2.13.0",
     "mocha": "5.2.0",
+    "prettier": "^2.5.1",
     "should": "13.2.3",
     "sinon": "7.5.0"
   },
@@ -54,7 +60,7 @@
     "node": ">=4.0"
   },
   "scripts": {
-    "pretest": "./node_modules/.bin/jshint --config ./.jshintrc lib test",
+    "pretest": "eslint lib test",
     "test": "NODE_ENV=test ./node_modules/.bin/mocha 'test/**/*_test.js'",
     "test-debug": "NODE_ENV=test ./node_modules/.bin/mocha  --inspect --debug-brk 'test/**/*_test.js'"
   },

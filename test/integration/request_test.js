@@ -1,159 +1,160 @@
-'use strict';
+/* eslint-disable no-new */
+"use strict";
 
 /**
  * Module dependencies.
  */
 
-var Request = require('../../lib/request');
-var InvalidArgumentError = require('../../lib/errors/invalid-argument-error');
-var should = require('should');
+const Request = require("../../lib/request");
+const InvalidArgumentError = require("../../lib/errors/invalid-argument-error");
+const should = require("should");
 
 /**
  * Test `Request` integration.
  */
 
-describe('Request integration', function() {
-  describe('constructor()', function() {
-    it('should throw an error if `headers` is missing', function() {
+describe("Request integration", () => {
+  describe("constructor()", () => {
+    it("should throw an error if `headers` is missing", () => {
       try {
         new Request({ body: {} });
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `headers`');
+        e.message.should.equal("Missing parameter: `headers`");
       }
     });
 
-    it('should throw an error if `method` is missing', function() {
+    it("should throw an error if `method` is missing", () => {
       try {
         new Request({ body: {}, headers: {} });
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `method`');
+        e.message.should.equal("Missing parameter: `method`");
       }
     });
 
-    it('should throw an error if `query` is missing', function() {
+    it("should throw an error if `query` is missing", () => {
       try {
         new Request({ body: {}, headers: {}, method: {} });
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `query`');
+        e.message.should.equal("Missing parameter: `query`");
       }
     });
 
-    it('should set the `body`', function() {
-      var request = new Request({ body: 'foo', headers: {}, method: {}, query: {} });
+    it("should set the `body`", () => {
+      const request = new Request({ body: "foo", headers: {}, method: {}, query: {} });
 
-      request.body.should.equal('foo');
+      request.body.should.equal("foo");
     });
 
-    it('should set the `headers`', function() {
-      var request = new Request({ body: {}, headers: { foo: 'bar', QuX: 'biz' }, method: {}, query: {} });
+    it("should set the `headers`", () => {
+      const request = new Request({ body: {}, headers: { foo: "bar", QuX: "biz" }, method: {}, query: {} });
 
-      request.headers.should.eql({ foo: 'bar', qux: 'biz' });
+      request.headers.should.eql({ foo: "bar", qux: "biz" });
     });
 
-    it('should set the `method`', function() {
-      var request = new Request({ body: {}, headers: {}, method: 'biz', query: {} });
+    it("should set the `method`", () => {
+      const request = new Request({ body: {}, headers: {}, method: "biz", query: {} });
 
-      request.method.should.equal('biz');
+      request.method.should.equal("biz");
     });
 
-    it('should set the `query`', function() {
-      var request = new Request({ body: {}, headers: {}, method: {}, query: 'baz' });
+    it("should set the `query`", () => {
+      const request = new Request({ body: {}, headers: {}, method: {}, query: "baz" });
 
-      request.query.should.equal('baz');
-    });
-  });
-
-  describe('get()', function() {
-    it('should return `undefined` if the field does not exist', function() {
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
-
-      (undefined === request.get('content-type')).should.be.true;
-    });
-
-    it('should return the value if the field exists', function() {
-      var request = new Request({
-        body: {},
-        headers: {
-          'content-type': 'text/html; charset=utf-8'
-        },
-        method: {},
-        query: {}
-      });
-
-      request.get('Content-Type').should.equal('text/html; charset=utf-8');
+      request.query.should.equal("baz");
     });
   });
 
-  describe('is()', function() {
-    it('should accept an array of `types`', function() {
-      var request = new Request({
-        body: {},
-        headers: {
-          'content-type': 'application/json',
-          'transfer-encoding': 'chunked'
-        },
-        method: {},
-        query: {}
-      });
+  describe("get()", () => {
+    it("should return `undefined` if the field does not exist", () => {
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
-      request.is(['html', 'json']).should.equal('json');
+      (undefined === request.get("content-type")).should.be.true;
     });
 
-    it('should accept multiple `types` as arguments', function() {
-      var request = new Request({
+    it("should return the value if the field exists", () => {
+      const request = new Request({
         body: {},
         headers: {
-          'content-type': 'application/json',
-          'transfer-encoding': 'chunked'
+          "content-type": "text/html; charset=utf-8",
         },
         method: {},
-        query: {}
+        query: {},
       });
 
-      request.is('html', 'json').should.equal('json');
+      request.get("Content-Type").should.equal("text/html; charset=utf-8");
     });
+  });
 
-    it('should return the first matching type', function() {
-      var request = new Request({
+  describe("is()", () => {
+    it("should accept an array of `types`", () => {
+      const request = new Request({
         body: {},
         headers: {
-          'content-type': 'text/html; charset=utf-8',
-          'transfer-encoding': 'chunked'
+          "content-type": "application/json",
+          "transfer-encoding": "chunked",
         },
         method: {},
-        query: {}
+        query: {},
       });
 
-      request.is('html').should.equal('html');
+      request.is(["html", "json"]).should.equal("json");
     });
 
-    it('should return `false` if none of the `types` match', function() {
-      var request = new Request({
+    it("should accept multiple `types` as arguments", () => {
+      const request = new Request({
         body: {},
         headers: {
-          'content-type': 'text/html; charset=utf-8',
-          'transfer-encoding': 'chunked'
+          "content-type": "application/json",
+          "transfer-encoding": "chunked",
         },
         method: {},
-        query: {}
+        query: {},
       });
 
-      request.is('json').should.be.false;
+      request.is("html", "json").should.equal("json");
     });
 
-    it('should return `false` if the request has no body', function() {
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+    it("should return the first matching type", () => {
+      const request = new Request({
+        body: {},
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "transfer-encoding": "chunked",
+        },
+        method: {},
+        query: {},
+      });
 
-      request.is('text/html').should.be.false;
+      request.is("html").should.equal("html");
+    });
+
+    it("should return `false` if none of the `types` match", () => {
+      const request = new Request({
+        body: {},
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "transfer-encoding": "chunked",
+        },
+        method: {},
+        query: {},
+      });
+
+      request.is("json").should.be.false;
+    });
+
+    it("should return `false` if the request has no body", () => {
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+
+      request.is("text/html").should.be.false;
     });
   });
 });

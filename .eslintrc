@@ -1,0 +1,13 @@
+{
+  "extends": "a1motion",
+  "rules": {
+    "require-atomic-updates": 0,
+    "prettier/prettier": ["error", {
+      "trailingComma": "es5",
+      "printWidth": 120,
+      "semi": true,
+      "arrowParens": "always",
+      "endOfLine": "lf"
+    }]
+  }
+}

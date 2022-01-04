@@ -1,254 +1,289 @@
-'use strict';
+/* eslint-disable no-new */
+/* eslint-disable no-empty-function */
+"use strict";
 
 /**
  * Module dependencies.
  */
 
-var ClientCredentialsGrantType = require('../../../lib/grant-types/client-credentials-grant-type');
-var InvalidArgumentError = require('../../../lib/errors/invalid-argument-error');
-var InvalidGrantError = require('../../../lib/errors/invalid-grant-error');
-var Promise = require('bluebird');
-var Request = require('../../../lib/request');
-var should = require('should');
+const ClientCredentialsGrantType = require("../../../lib/grant-types/client-credentials-grant-type");
+const InvalidArgumentError = require("../../../lib/errors/invalid-argument-error");
+const InvalidGrantError = require("../../../lib/errors/invalid-grant-error");
+const Request = require("../../../lib/request");
+const should = require("should");
 
 /**
  * Test `ClientCredentialsGrantType` integration.
  */
 
-describe('ClientCredentialsGrantType integration', function() {
-  describe('constructor()', function() {
-    it('should throw an error if `model` is missing', function() {
+describe("ClientCredentialsGrantType integration", () => {
+  describe("constructor()", () => {
+    it("should throw an error if `model` is missing", () => {
       try {
         new ClientCredentialsGrantType();
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `model`');
+        e.message.should.equal("Missing parameter: `model`");
       }
     });
 
-    it('should throw an error if the model does not implement `getUserFromClient()`', function() {
+    it("should throw an error if the model does not implement `getUserFromClient()`", () => {
       try {
         new ClientCredentialsGrantType({ model: {} });
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Invalid argument: model does not implement `getUserFromClient()`');
+        e.message.should.equal("Invalid argument: model does not implement `getUserFromClient()`");
       }
     });
 
-    it('should throw an error if the model does not implement `saveToken()`', function() {
+    it("should throw an error if the model does not implement `saveToken()`", () => {
       try {
-        var model = {
-          getUserFromClient: function() {}
+        const model = {
+          getUserFromClient() {},
         };
 
-        new ClientCredentialsGrantType({ model: model });
+        new ClientCredentialsGrantType({ model });
 
         should.fail();
       } catch (e) {
         e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Invalid argument: model does not implement `saveToken()`');
+        e.message.should.equal("Invalid argument: model does not implement `saveToken()`");
       }
     });
   });
 
-  describe('handle()', function() {
-    it('should throw an error if `request` is missing', function() {
-      var model = {
-        getUserFromClient: function() {},
-        saveToken: function() {}
+  describe("handle()", () => {
+    it("should throw an error if `request` is missing", () => {
+      const model = {
+        getUserFromClient() {},
+        saveToken() {},
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
 
-      try {
-        grantType.handle();
-
-        should.fail();
-      } catch (e) {
-        e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `request`');
-      }
+      return grantType
+        .handle()
+        .then(should.fail)
+        .catch((e) => {
+          e.should.be.an.instanceOf(InvalidArgumentError);
+          e.message.should.equal("Missing parameter: `request`");
+        });
     });
 
-    it('should throw an error if `client` is missing', function() {
-      var model = {
-        getUserFromClient: function() {},
-        saveToken: function() {}
+    it("should throw an error if `client` is missing", () => {
+      const model = {
+        getUserFromClient() {},
+        saveToken() {},
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
-      try {
-        grantType.handle(request);
-
-        should.fail();
-      } catch (e) {
-        e.should.be.an.instanceOf(InvalidArgumentError);
-        e.message.should.equal('Missing parameter: `client`');
-      }
+      return grantType
+        .handle(request)
+        .then(should.fail)
+        .catch((e) => {
+          e.should.be.an.instanceOf(InvalidArgumentError);
+          e.message.should.equal("Missing parameter: `client`");
+        });
     });
 
-    it('should return a token', function() {
-      var token = {};
-      var model = {
-        getUserFromClient: function() { return {}; },
-        saveToken: function() { return token; },
-        validateScope: function() { return 'foo'; }
+    it("should return a token", () => {
+      const token = {};
+      const model = {
+        getUserFromClient() {
+          return {};
+        },
+        saveToken() {
+          return token;
+        },
+        validateScope() {
+          return "foo";
+        },
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
-      return grantType.handle(request, {})
-        .then(function(data) {
+      return grantType
+        .handle(request, {})
+        .then((data) => {
           data.should.equal(token);
         })
         .catch(should.fail);
     });
 
-    it('should support promises', function() {
-      var token = {};
-      var model = {
-        getUserFromClient: function() { return {}; },
-        saveToken: function() { return token; }
+    it("should support promises", () => {
+      const token = {};
+      const model = {
+        getUserFromClient() {
+          return {};
+        },
+        saveToken() {
+          return token;
+        },
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
       grantType.handle(request, {}).should.be.an.instanceOf(Promise);
     });
 
-    it('should support non-promises', function() {
-      var token = {};
-      var model = {
-        getUserFromClient: function() { return {}; },
-        saveToken: function() { return token; }
+    it("should support non-promises", () => {
+      const token = {};
+      const model = {
+        getUserFromClient() {
+          return {};
+        },
+        saveToken() {
+          return token;
+        },
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
       grantType.handle(request, {}).should.be.an.instanceOf(Promise);
     });
   });
 
-  describe('getUserFromClient()', function() {
-    it('should throw an error if `user` is missing', function() {
-      var model = {
-        getUserFromClient: function() {},
-        saveToken: function() {}
+  describe("getUserFromClient()", () => {
+    it("should throw an error if `user` is missing", () => {
+      const model = {
+        getUserFromClient() {},
+        saveToken() {},
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
-      return grantType.getUserFromClient(request, {})
+      return grantType
+        .getUserFromClient(request, {})
         .then(should.fail)
-        .catch(function(e) {
+        .catch((e) => {
           e.should.be.an.instanceOf(InvalidGrantError);
-          e.message.should.equal('Invalid grant: user credentials are invalid');
+          e.message.should.equal("Invalid grant: user credentials are invalid");
         });
     });
 
-    it('should return a user', function() {
-      var user = { email: 'foo@bar.com' };
-      var model = {
-        getUserFromClient: function() { return user; },
-        saveToken: function() {}
+    it("should return a user", () => {
+      const user = { email: "foo@bar.com" };
+      const model = {
+        getUserFromClient() {
+          return user;
+        },
+        saveToken() {},
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
-      return grantType.getUserFromClient(request, {})
-        .then(function(data) {
+      return grantType
+        .getUserFromClient(request, {})
+        .then((data) => {
           data.should.equal(user);
         })
         .catch(should.fail);
     });
 
-    it('should support promises', function() {
-      var user = { email: 'foo@bar.com' };
-      var model = {
-        getUserFromClient: function() { return Promise.resolve(user); },
-        saveToken: function() {}
+    it("should support promises", () => {
+      const user = { email: "foo@bar.com" };
+      const model = {
+        getUserFromClient() {
+          return Promise.resolve(user);
+        },
+        saveToken() {},
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
       grantType.getUserFromClient(request, {}).should.be.an.instanceOf(Promise);
     });
 
-    it('should support non-promises', function() {
-      var user = { email: 'foo@bar.com' };
-      var model = {
-        getUserFromClient: function() {return user; },
-        saveToken: function() {}
+    it("should support non-promises", () => {
+      const user = { email: "foo@bar.com" };
+      const model = {
+        getUserFromClient() {
+          return user;
+        },
+        saveToken() {},
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
       grantType.getUserFromClient(request, {}).should.be.an.instanceOf(Promise);
     });
 
-    it('should support callbacks', function() {
-      var user = { email: 'foo@bar.com' };
-      var model = {
-        getUserFromClient: function(userId, callback) { callback(null, user); },
-        saveToken: function() {}
+    it("should support callbacks", () => {
+      const user = { email: "foo@bar.com" };
+      const model = {
+        getUserFromClient(userId, callback) {
+          callback(null, user);
+        },
+        saveToken() {},
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model: model });
-      var request = new Request({ body: {}, headers: {}, method: {}, query: {} });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 120, model });
+      const request = new Request({ body: {}, headers: {}, method: {}, query: {} });
 
       grantType.getUserFromClient(request, {}).should.be.an.instanceOf(Promise);
     });
   });
 
-  describe('saveToken()', function() {
-    it('should save the token', function() {
-      var token = {};
-      var model = {
-        getUserFromClient: function() {},
-        saveToken: function() { return token; },
-        validateScope: function() { return 'foo'; }
+  describe("saveToken()", () => {
+    it("should save the token", () => {
+      const token = {};
+      const model = {
+        getUserFromClient() {},
+        saveToken() {
+          return token;
+        },
+        validateScope() {
+          return "foo";
+        },
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 123, model });
 
-      return grantType.saveToken(token)
-        .then(function(data) {
+      return grantType
+        .saveToken(token)
+        .then((data) => {
           data.should.equal(token);
         })
         .catch(should.fail);
     });
 
-    it('should support promises', function() {
-      var token = {};
-      var model = {
-        getUserFromClient: function() {},
-        saveToken: function() { return Promise.resolve(token); }
+    it("should support promises", () => {
+      const token = {};
+      const model = {
+        getUserFromClient() {},
+        saveToken() {
+          return Promise.resolve(token);
+        },
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 123, model });
 
       grantType.saveToken(token).should.be.an.instanceOf(Promise);
     });
 
-    it('should support non-promises', function() {
-      var token = {};
-      var model = {
-        getUserFromClient: function() {},
-        saveToken: function() { return token; }
+    it("should support non-promises", () => {
+      const token = {};
+      const model = {
+        getUserFromClient() {},
+        saveToken() {
+          return token;
+        },
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 123, model });
 
       grantType.saveToken(token).should.be.an.instanceOf(Promise);
     });
 
-    it('should support callbacks', function() {
-      var token = {};
-      var model = {
-        getUserFromClient: function() {},
-        saveToken: function(tokenToSave, client, user, callback) { callback(null, token); }
+    it("should support callbacks", () => {
+      const token = {};
+      const model = {
+        getUserFromClient() {},
+        saveToken(tokenToSave, client, user, callback) {
+          callback(null, token);
+        },
       };
-      var grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 123, model: model });
+      const grantType = new ClientCredentialsGrantType({ accessTokenLifetime: 123, model });
 
       grantType.saveToken(token).should.be.an.instanceOf(Promise);
     });

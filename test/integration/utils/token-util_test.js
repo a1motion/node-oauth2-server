@@ -1,21 +1,21 @@
-'use strict';
+"use strict";
 
 /**
  * Module dependencies.
  */
 
-var TokenUtil = require('../../../lib/utils/token-util');
-var should = require('should');
+const TokenUtil = require("../../../lib/utils/token-util");
+const should = require("should");
 
 /**
  * Test `TokenUtil` integration.
  */
 
-describe('TokenUtil integration', function() {
-  describe('generateRandomToken()', function() {
-    it('should return a sha-1 token', function() {
+describe("TokenUtil integration", () => {
+  describe("generateRandomToken()", () => {
+    it("should return a sha-1 token", () => {
       return TokenUtil.generateRandomToken()
-        .then(function(token) {
+        .then((token) => {
           token.should.be.a.sha1;
         })
         .catch(should.fail);
